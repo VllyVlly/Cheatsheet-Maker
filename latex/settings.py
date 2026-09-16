@@ -13,8 +13,6 @@ class FormatSettings(BaseModel):
     orientation: Orientation = Orientation.portrait
     margin: str = "1in"
 
-    def __init__(self, font_size, columns, orientation, margin):
-        self.font_size = font_size
-        self.columns = columns
-        self.orientation = orientation
-        self.margin = margin
+# Unused rn
+class FileSettings(BaseModel):
+    file_name: str = "cheatsheet"
