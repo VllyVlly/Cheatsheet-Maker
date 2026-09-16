@@ -1,4 +1,4 @@
-from jsonformat import ExtractedItem
+from parsing.jsonformat import ExtractedItem
 
 
 def classify(client, md, model="gemini-3.6-flash"):

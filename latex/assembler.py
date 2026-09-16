@@ -1,15 +1,19 @@
-from parsing.parser import ItemType, ExtractedItem
+from parsing.jsonformat import ItemType
 
 def assemble_latex(org_data):
+    lines = [r"\documentclass{article}", r"\begin{document}"]
     for section, contents in org_data.items():
-        # write the section title
+        lines.append(f"\\section{{{section}}}")
         for entry in contents:
             match entry.type:
                 case ItemType.definition:
-                    return
+                    lines.append(f"\\textbf{{{entry.content}}}")
                 case ItemType.example:
-                    return
+                    lines.append(f"\\textit{{{entry.content}}}")
                 case ItemType.formula:
-                    return
+                    lines.append(f"${entry.content}$")
                 case ItemType.explanation:
-                    return               
+                    lines.append(entry.content)
+    
+    lines.append(r"\end{document}")
+    return "\n".join(lines)
