@@ -2,6 +2,7 @@ from parsing.jsonformat import ItemType
 from latex.settings import Orientation, FormatSettings
 
 import subprocess
+import re
 
 def escape_latex(text: str) -> str:
     replacements = {
@@ -16,9 +17,14 @@ def escape_latex(text: str) -> str:
         "~": r"\textasciitilde{}",
         "^": r"\textasciicircum{}",
     }
+    split = re.split(r'(\$[^$]*\$)', text)
     result = []
-    for char in text:
-        result.append(replacements.get(char, char))
+    for entry in split:
+        if entry.startswith("$") and entry.endswith("$"):
+            result.append(entry)
+        else:
+            for char in entry:
+                result.append(replacements.get(char, char))
     return "".join(result)
 
 def assemble_latex(org_data, settings: FormatSettings = FormatSettings()):
@@ -43,12 +49,16 @@ def assemble_latex(org_data, settings: FormatSettings = FormatSettings()):
             match entry.type:
                 case ItemType.definition:
                     lines.append(f"\\textbf{{{escape_latex(entry.content)}}}")
+                    lines.append("") 
                 case ItemType.example:
                     lines.append(f"\\textit{{{escape_latex(entry.content)}}}")
+                    lines.append("") 
                 case ItemType.formula:
                     lines.append(f"${entry.content}$")
+                    lines.append("") 
                 case ItemType.explanation:
                     lines.append(escape_latex(entry.content))
+                    lines.append("") 
 
     if settings.columns > 1:
         lines.append(r"\end{multicols}")

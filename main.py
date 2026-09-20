@@ -9,9 +9,7 @@ from pathlib import Path
 from google import genai
 
 import os
-import torch
 
-print(torch.cuda.is_available())
 pipeline_options = PdfPipelineOptions()
 pipeline_options.do_formula_enrichment = True
 pipeline_options.do_ocr = True
