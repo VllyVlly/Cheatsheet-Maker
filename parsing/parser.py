@@ -2,6 +2,9 @@ from docling.document_converter import DocumentConverter
 from io import BytesIO
 from docling.datamodel.base_models import DocumentStream
 
+from pathlib import Path
+import tempfile
+
 def parse(converter: DocumentConverter, file_bytes, file_name):
     if converter is None: 
         print("Converter not found")
@@ -13,6 +16,12 @@ def parse(converter: DocumentConverter, file_bytes, file_name):
     source = DocumentStream(name = file_name, stream = buf)
     return converter.convert(source).document.export_to_markdown()
 
+def parse_liteparse(parser, file_bytes, filename):
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / Path(filename).name
+        path.write_bytes(file_bytes)
+        result = parser.parse(str(path))
+    return result.text
 
 def organize_parsed(ai_response):
     result = {}

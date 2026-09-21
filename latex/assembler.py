@@ -31,11 +31,13 @@ def assemble_latex(org_data, settings: FormatSettings = FormatSettings()):
     lines = [
         r"\documentclass{article}",
         f"\\usepackage[margin={settings.margin}]{{geometry}}",
+        r"\usepackage{amsmath}",
     ]
     if settings.orientation == Orientation.landscape:
         lines.append(r"\usepackage{pdflscape}")
     if settings.columns > 1:
         lines.append(r"\usepackage{multicol}")
+
 
     lines.append(r"\begin{document}")
     lines.append(f"\\{settings.font_size}")
@@ -58,6 +60,9 @@ def assemble_latex(org_data, settings: FormatSettings = FormatSettings()):
                     lines.append("") 
                 case ItemType.explanation:
                     lines.append(escape_latex(entry.content))
+                    lines.append("") 
+                case ItemType.theorem:
+                    lines.append(f"\\textbf{{{escape_latex(entry.content)}}}")
                     lines.append("") 
 
     if settings.columns > 1:

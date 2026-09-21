@@ -2,30 +2,53 @@ from parsing.jsonformat import ExtractedItem
 import google
 import time
 
+PROMPT = """
+Extract and classify content from the lecture material below into structured items.
+Each item has: type, content, section.
+
+ITEM TYPES
+- definition: a statement that defines a term, or states a named law or principle.
+- example: a worked example, problem, or illustration.
+- formula: a STANDALONE equation or expression only. It must contain no full
+sentences. A sentence that merely contains math is NOT a formula.
+- explanation: any other prose, including sentences that contain math.
+- theorem: a formally stated, provable result: theorems, lemmas, propositions,
+corollaries. Include the conditions and the conclusion, but not the proof.
+A named law or principle without a proof (e.g. Newton's laws) is a definition.
+
+MATH RULES
+1. formula items: write raw LaTeX math only. Do NOT include any $ or $$
+delimiters, even if the source has them. Remove them.
+2. definition, theorem, example, explanation items: wrap every piece of math in
+inline delimiters $...$. This includes variables, subscripts, superscripts,
+and short equations, even a single variable like $m$.
+Leave plain words without math meaning undelimited.
+3. If the source already has $...$ or $$...$$ inside prose, keep that math
+as it is. Do not add extra delimiters or change inline to display.
+
+EXAMPLES
+Input: "The force FBA exerted by object B on object A equals FAB in magnitude"
+Output: type=explanation,
+content="The force $F_{BA}$ exerted by object B on object A equals $F_{AB}$ in magnitude"
+
+Input: "$$F_{net} = ma$$" (standalone equation)
+Output: type=formula, content="F_{net} = ma"
+
+Input: "The acceleration is proportional to the net force, so F_net = ma."
+Output: type=explanation,
+content="The acceleration is proportional to the net force, so $F_{net} = ma$."
+(This is prose containing math, so it is NOT a formula.)
+
+Now extract and classify the following lecture material: """
+
+
 def classify(client, md, model="gemini-3.6-flash", max_retries=4):
+    prompt = PROMPT + "\n'\n" + md
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
                 model=model,
-                contents=f"""Extract and classify content from this lecture material into structured items.
-
-                When writing the `content` field for each item, wrap any mathematical notation in LaTeX 
-                inline-math delimiters ($...$) — this includes variables, subscripts, superscripts, and 
-                equations, even short ones like a single variable with a subscript. Do not wrap plain 
-                prose text that has no mathematical meaning.
-
-                Example:
-                Input text: "The force FBA exerted by object B on object A equals FAB in magnitude"
-                Correct content field: "The force $F_{{BA}}$ exerted by object B on object A equals $F_{{AB}}$ in magnitude"
-
-                The lecture material may already contain some math wrapped in $...$ or $$...$$ 
-                delimiters (e.g. from formula extraction). Leave any already-delimited math 
-                exactly as it is — do not add extra delimiters or change inline ($...$) to 
-                display ($$...$$) or vice versa. Only add $...$ delimiters to mathematical 
-                notation that appears as plain, undelimited text.
-
-                Now extract and classify the following lecture material:
-                \n\n{md}""",
+                contents=prompt,
                 config={
                     "response_mime_type": "application/json",
                     "response_schema": list[ExtractedItem],
