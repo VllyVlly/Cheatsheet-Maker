@@ -2,6 +2,8 @@ from parsing.jsonformat import ExtractedItem
 import google
 import time
 
+CLASSIFIER_EXTRA: str = ""
+
 PROMPT = """
 Extract and classify content from the lecture material below into structured items.
 Each item has: type, content, section.
@@ -42,8 +44,8 @@ content="The acceleration is proportional to the net force, so $F_{net} = ma$."
 Now extract and classify the following lecture material: """
 
 
-def classify(client, md, model="gemini-3.6-flash", max_retries=4):
-    prompt = PROMPT + "\n'\n" + md
+def classify(client, md, model="gemini-3.6-flash", max_retries=4, extra_prompt=CLASSIFIER_EXTRA):
+    prompt = PROMPT + extra_prompt + "\n'\n" + md
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(

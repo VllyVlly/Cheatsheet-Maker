@@ -3,6 +3,8 @@ import google
 import time
 import json
 
+SUMMARIZER_EXTRA: str = ""
+
 PROMPT = """
 You are summarizing lecture notes for an exam cheatsheet.
 
@@ -36,10 +38,9 @@ OUTPUT FORMAT
 Now summarize the following items:
 """
 
-
-def summarizer(client, items, model="gemini-3.6-flash", max_retries=4):
+def summarizer(client, items, model="gemini-3.6-flash", max_retries=4, extra_prompt=SUMMARIZER_EXTRA):
     text = json.dumps([item.model_dump(mode="json") for item in items], ensure_ascii=False)
-    prompt = PROMPT + "\n'\n" + text
+    prompt = PROMPT + extra_prompt + "\n'\n" + text 
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
