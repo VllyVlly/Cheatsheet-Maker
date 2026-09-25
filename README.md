@@ -39,8 +39,8 @@ flowchart LR
 | Document parsing (Docling, with OCR) | Working, but slow |
 | Fast parsing alternative (liteparse) | Being evaluated |
 | Classification (Gemini) | Working |
-| Summarization (Gemini) | In testing |
-| LaTeX assembly and PDF compile | Working, still being polished |
+| Summarization (Gemini) | Working |
+| LaTeX assembly and PDF compile | Working |
 | Format settings (font size, columns, orientation, margin) | Working |
 | Retry handling, quota handling and caching for LLM calls | Planned |
 | Content settings (choose which sections and items to include) | Planned |
