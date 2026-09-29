@@ -1,15 +1,12 @@
-from parsing.jsonformat import ExtractedItem
-import google
-import time
-import json
-
-SUMMARIZER_EXTRA: str = ""
+from parsing.jsonformat import ExtractedItem, ProcessedItems
+import ollama
 
 PROMPT = """
 You are summarizing lecture notes for an exam cheatsheet.
 
 INPUT FORMAT
-The input is a JSON array of items produced by a classifier. Each item has:
+The input is a JSON object with one field, "items", containing a list of items
+produced by a classifier. Each item has:
 - type: one of definition, theorem, example, formula, explanation.
 - content: the text of the item. Math is written in LaTeX.
 - section: the heading the item belongs to.
@@ -29,33 +26,31 @@ MATH RULES
 - Only change the words around the math.
 
 OUTPUT FORMAT
-- Return a JSON array in exactly the same format as the input.
-- Keep the same number of items, in the same order.
+- Return a single JSON object with one field, "items", in exactly the same
+  format as the input. Do not return a bare list, and do not add any text
+  outside the JSON.
+- Keep the same number of items, in the same order
 - Keep id, type, and section unchanged for every item.
 - Only `content` may change, and only for definition, example, and explanation items.
 - Do not merge, split, add, or drop items.
 
-Now summarize the following items:
+The items to summarize will be provided in the user message
 """
 
-def summarizer(client, items, model="gemini-3.6-flash", max_retries=4, extra_prompt=SUMMARIZER_EXTRA):
-    text = json.dumps([item.model_dump(mode="json") for item in items], ensure_ascii=False)
-    prompt = PROMPT + extra_prompt + "\n'\n" + text 
-    for attempt in range(max_retries):
-        try:
-            response = client.models.generate_content(
-                model=model,
-                contents=prompt,
-                config={
-                    "response_mime_type": "application/json",
-                    "response_schema": list[ExtractedItem],
-                },
-            )
-            return response.parsed
-        except google.genai.errors.ServerError as e:
-            wait = 2 ** attempt
-            print(f"Gemini overloaded (attempt {attempt+1}/{max_retries}), retrying in {wait}s...")
-            time.sleep(wait)
 
-    print(f"classify() failed after {max_retries} attempts, returning None")
-    return None
+def classify(text, extra_prompt="") -> list[ExtractedItem]:
+    prompt = PROMPT + "\n" + extra_prompt
+    response = ollama.chat(
+        model='qwen3.5',
+        messages=[
+            {'role': 'system', 'content': prompt},   
+            {'role': 'user',   'content': text},     
+        ],
+        format=ProcessedItems.model_json_schema(),
+        options={'temperature': 0},
+    )
+
+    raw = response.message.content
+
+    parsed = ProcessedItems.model_validate_json(raw)              
+    return parsed.items         

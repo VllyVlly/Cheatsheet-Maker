@@ -1,11 +1,6 @@
 from docling.document_converter import DocumentConverter
 from io import BytesIO
 from docling.datamodel.base_models import DocumentStream
-import os
-from pathlib import Path
-
-from liteparse import LiteParse
-
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
@@ -13,9 +8,6 @@ from docling.datamodel.pipeline_options import (
     AcceleratorOptions,
     PdfPipelineOptions,
 )
-
-from pathlib import Path
-import tempfile
 import pymupdf
 
 def build_converter(formula_enrichment=True, ocr=True):
@@ -28,14 +20,6 @@ def build_converter(formula_enrichment=True, ocr=True):
     )
 
 
-def build_liteparse(ocr=True):
-    return LiteParse(
-        output_format="markdown",
-        image_mode="off",
-        ocr_enabled=ocr,
-        quiet=True,
-    )
-
 def parse_docling(converter: DocumentConverter, file_bytes, file_name):
     if converter is None: 
         print("Converter not found")
@@ -46,13 +30,6 @@ def parse_docling(converter: DocumentConverter, file_bytes, file_name):
     buf = BytesIO(file_bytes)
     source = DocumentStream(name = file_name, stream = buf)
     return converter.convert(source).document.export_to_markdown()
-
-def parse_liteparse(parser, file_bytes, filename):
-    with tempfile.TemporaryDirectory() as tmp:
-        path = Path(tmp) / Path(filename).name
-        path.write_bytes(file_bytes)
-        result = parser.parse(str(path))
-    return result.text
 
 
 def parse_pdf(file_bytes):

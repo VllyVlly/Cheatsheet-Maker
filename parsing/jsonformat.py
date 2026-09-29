@@ -24,3 +24,6 @@ class ExtractedItem(BaseModel):
     )
     content: str = Field(description=("the actual content of the parsed object"))
     section: str = Field(description=("the section the parsed object belongs to"))
+
+class ProcessedItems(BaseModel):
+    items: list[ExtractedItem]
