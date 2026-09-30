@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import './FileUpload.css'
 
 function FileUpload() {
   const [file, setFile] = useState(null)
@@ -9,22 +8,10 @@ function FileUpload() {
     // and store it with setFile
   }
 
-  function handleGenerateClick() {
-    // TODO: no backend yet — do something that lets you *verify*
-    // `file` was captured correctly
-  }
-
   return (
     <div className="upload-section">
       <input type="file" onChange={handleFileChange} />
-      <button
-        type="button"
-        className="generate-btn"
-        onClick={handleGenerateClick}
-        // disabled={/* TODO: expression using `file` */}
-      >
-        Generate
-      </button>
+      {file && <p className="file-name">{file.name}</p>}
     </div>
   )
 }
