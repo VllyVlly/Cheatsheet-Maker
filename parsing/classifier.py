@@ -1,5 +1,7 @@
 from parsing.jsonformat import ExtractedItem, ProcessedItems
 import ollama
+import time
+import google
 
 PROMPT = """
 Extract and classify content from the lecture material below into structured items.
@@ -25,40 +27,26 @@ Leave plain words without math meaning undelimited.
 3. If the source already has $...$ or $$...$$ inside prose, keep that math
 as it is. Do not add extra delimiters or change inline to display.
 
-OUTPUT FORMAT
-Return a single JSON object with one field, "items", containing the list of
-extracted items. Each item has "type", "content", and "section". Do not return
-a bare list, and do not add any text outside the JSON.
-
 EXAMPLES
 Input: "The force FBA exerted by object B on object A equals FAB in magnitude"
-Output: {"items": [{"type": "explanation",
-"content": "The force $F_{BA}$ exerted by object B on object A equals $F_{AB}$ in magnitude",
-"section": "Newton's Third Law"}]}
+Output: type=explanation,
+content="The force $F_{BA}$ exerted by object B on object A equals $F_{AB}$ in magnitude"
 
 Input: "$$F_{net} = ma$$" (standalone equation)
-Output: {"items": [{"type": "formula",
-"content": "F_{net} = ma",
-"section": "Newton's Second Law"}]}
+Output: type=formula, content="F_{net} = ma"
 
 Input: "The acceleration is proportional to the net force, so F_net = ma."
-Output: {"items": [{"type": "explanation",
-"content": "The acceleration is proportional to the net force, so $F_{net} = ma$.",
-"section": "Newton's Second Law"}]}
-(This is prose containing math, so it is NOT a formula.)
+Output: type=explanation,
+content="The acceleration is proportional to the net force, so $F_{net} = ma$."
 
-Return your answer as a single JSON object with one field, "items",
-containing the list of extracted items. Do not return a bare list,
-and do not add any text outside the JSON.
-
-The lecture material to process will be provided in the user message.
+Now extract and classify the following lecture material:
 """
 
 
 def classify(text, extra_prompt="") -> list[ExtractedItem]:
     prompt = PROMPT + "\n" + extra_prompt
     response = ollama.chat(
-        model='qwen3.5',
+        model='qwen3:4b',
         messages=[
             {'role': 'system', 'content': prompt},   
             {'role': 'user',   'content': text},     
@@ -71,3 +59,22 @@ def classify(text, extra_prompt="") -> list[ExtractedItem]:
 
     parsed = ProcessedItems.model_validate_json(raw)              
     return parsed.items         
+
+def classify_gemini(client, md, model="gemini-3.6-flash", max_retries=4, extra_prompt=""):
+    prompt = PROMPT + extra_prompt + "\n'\n" + md
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config={
+                    "response_mime_type": "application/json",
+                    "response_schema": list[ExtractedItem],
+                },
+            )
+            return response.parsed
+        except google.genai.errors.ServerError as e:
+            wait = 2 ** attempt
+            print(f"Gemini overloaded (attempt {attempt+1}/{max_retries}), retrying in {wait}s...")
+            time.sleep(wait)
+    raw = response.message.content
