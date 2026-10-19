@@ -1,25 +1,15 @@
-const STAGES = ['Parsing your files', 'Classifying content', 'Assembling LaTeX', 'Compiling PDF']
+import Icon from './Icon'
 
-function LoadingScreen() {
-  const currentStage = 1 // hardcoded for now; later the backend status drives this
-
+function LoadingScreen({ fileCount }) {
   return (
-    <main className="loading">
-      <div className="spinner" />
-      <h2>Building your cheatsheet…</h2>
-      <p className="hint">This can take a few minutes for large files.</p>
-
-      <ul className="stages">
-        {STAGES.map((name, i) => {
-          const state = i < currentStage ? 'done' : i === currentStage ? 'active' : 'pending'
-          return (
-            <li key={name} className={`stage ${state}`}>
-              <span className="dot" />
-              {name}
-            </li>
-          )
-        })}
-      </ul>
+    <main className="loading-screen" aria-live="polite" aria-busy="true">
+      <div className="processing-visual"><div className="processing-ring" /><span><Icon name="layers" size={36} /></span></div>
+      <span className="eyebrow">GOOD NOTES TAKE SHAPE</span>
+      <h1>A clearer view is on its way.</h1>
+      <p>We’re turning {fileCount === 1 ? 'your file' : `your ${fileCount} files`} into one focused cheatsheet.<br />This can take a few minutes. Keep this page open.</p>
+      <div className="processing-status"><span className="status-dot" /> Processing your materials <span className="status-label">In progress</span></div>
+      <div className="pipeline-explanation"><span>Extract content</span><Icon name="arrow" size={14} /><span>Condense ideas</span><Icon name="arrow" size={14} /><span>Create PDF</span></div>
+      <p className="loading-note">Your formatting and custom prompts are included in this request.</p>
     </main>
   )
 }

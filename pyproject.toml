@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cheatsheet-maker"
+version = "0.1.0"
+description = "Generate LaTeX cheatsheets from lecture documents with Docling and Gemini."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2,<3",
+    "google-genai>=1,<3",
+    "PyMuPDF>=1.24,<2",
+    "docling>=2.127,<3",
+]
+
+[project.optional-dependencies]
+web = ["Flask>=3.1,<4", "flask-cors>=6,<7"]
+ollama = ["ollama>=0.4,<1"]
+dev = ["build>=1,<2"]
+
+[project.scripts]
+cheatsheet-maker = "cheatsheet_maker.cli:main"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cheatsheet_maker", "cheatsheet_maker.*"]
+namespaces = false

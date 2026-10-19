@@ -4,3 +4,22 @@ __pycache__/
 
 *.pdf
 *.tex
+.test-dependencies/
+
+.env
+.env.*
+!.env.example
+
+build/
+dist/
+*.egg-info/
+.venv/
+.ipynb_checkpoints/
+output/
+
+# Local logs, credentials, and input documents
+*.log
+/secrets/
+/inputs/
+*.key
+*.pem

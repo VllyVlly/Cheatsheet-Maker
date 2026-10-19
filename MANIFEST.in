@@ -1,0 +1,14 @@
+include README.md SECURITY.md pyproject.toml
+recursive-include cheatsheet_maker *.py
+prune backend
+prune frontend
+prune parsing
+prune latex
+prune examples
+prune tests
+prune output
+prune venv
+prune .venv
+prune .test-dependencies
+prune .git
+global-exclude .env .env.* *.pyc *.pyo *.pdf *.tex *.ipynb

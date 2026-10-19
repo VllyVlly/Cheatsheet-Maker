@@ -1,21 +1,16 @@
-from latex.assembler import assemble_latex, compile_latex
-from latex.settings import FormatSettings
-from parsing.classifier import classify_gemini
-from parsing.parser import organize_parsed, parse_pdf
-from parsing.summarizer import summarizer_gemini
+from cheatsheet_maker import CheatsheetMaker
 
 
-def generate_cheatsheet(client, file_bytes,
-                        settings=FormatSettings(), output_name="cheatsheet", 
-                        extra_classifier="", extra_summarizer=""):
-    parsed = parse_pdf(file_bytes) 
-    print("parsed chars:", len(parsed))  
-    classified = classify_gemini(client, parsed, extra_prompt=extra_classifier)
-    summarized = summarizer_gemini(client, classified, extra_prompt=extra_summarizer)
-    organized = organize_parsed(summarized)
-    latex = assemble_latex(organized, settings)
-    pdf_path = compile_latex(latex, filename=output_name)
-    if pdf_path is None:
-        raise RuntimeError("LaTeX compilation failed")
-    return pdf_path
-
+def generate_cheatsheet(client, file_bytes, settings=None, output_name="cheatsheet",
+                        extra_classifier="", extra_summarizer="", output_dir="output"):
+    documents = [("lecture.pdf", file_bytes)] if isinstance(file_bytes, bytes) else file_bytes
+    with CheatsheetMaker(client=client) as maker:
+        result = maker.generate(
+            documents,
+            settings=settings,
+            output_dir=output_dir,
+            output_name=output_name,
+            extra_classifier=extra_classifier,
+            extra_summarizer=extra_summarizer,
+        )
+    return str(result.pdf_path)

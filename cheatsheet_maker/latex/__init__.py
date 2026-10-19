@@ -1,0 +1,1 @@
+"""LaTeX assembly and compilation."""
